@@ -22,12 +22,8 @@ namespace LemonMES
 
                 // Create a new user
                 //var georgey = new User("georgeyrules", "wrc24", RoleType.BusinessUser);
-                //var bryant = new User("BryantRuff1", "PastaPasta123", RoleType.Engineer);
-                //var aidan = new User("AidanTer1", "codecode123", RoleType.Engineer);
                 //var sean = new User("SeanB333", "operatortime", RoleType.LeadOperator);
-                //logInFunctions.AddUser(kavya);
                 //logInFunctions.AddUser(sean);
-                //logInFunctions.AddUser(aidan);
                 //logInFunctions.AddUser(georgey);
                 //for (int i = 1; i < 15; i++)
                 //{

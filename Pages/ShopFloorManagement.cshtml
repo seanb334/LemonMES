@@ -1,0 +1,217 @@
+﻿@page
+@model LemonMES.Pages.ShopFloorManagementModel
+@{
+    ViewData["Title"] = "Shop Floor Management";
+}
+@functions
+{
+    public string AddSpacesToEnum(string enumValue)
+    {
+        if (string.IsNullOrEmpty(enumValue))
+            return enumValue;
+        return System.Text.RegularExpressions.Regex.Replace(enumValue, "([a-z])([A-Z])", "$1 $2");
+    }
+
+    public string GetStateName(int stateValue)
+    {
+        var stateEnum = (Models.Product.State)stateValue;
+        return AddSpacesToEnum(stateEnum.ToString());
+    }
+}
+<h1>@ViewData["Title"]</h1>
+
+<!-- Dropdown for ProdStage Enum -->
+<select id="prodStageDropdown" onchange="fetchProductsByStage()">
+    <option value="">Select Unit Operation</option>
+    @foreach (var stage in Enum.GetValues(typeof(Models.Product.ProdStage)))
+    {
+        <option value="@stage">@AddSpacesToEnum(stage.ToString())</option>
+    }
+</select>
+
+<!-- Table to Display Products -->
+<table id="productTable" style="display:none;">
+    <thead>
+        <tr>
+            <th scope="col">Serial Number</th>
+            <th scope="col">Current State</th>
+            <th scope="col">Date Created</th>
+            <th scope="col">Date Updated</th>
+            <th scope="col">Description</th>
+        </tr>
+    </thead>
+    <tbody id="productTableBody">
+        <!-- Rows will be dynamically added here -->
+    </tbody>
+</table>
+
+<!-- Status Indicator -->
+<div id="statusIndicator" style="margin-top: 20px; display:none;">
+    <span id="statusText"></span>
+</div>
+
+<!-- Create, Update, and Delete Product Forms -->
+<div id="productForms" style="display:none;">
+
+    <!-- Create Product Form -->
+    <h3>Create Product</h3>
+    <form id="createProductForm">
+        <label for="newSerialNumber">Serial Number:</label>
+        <input type="text" id="newSerialNumber" required />
+        <label for="newDescription">Description:</label>
+        <input type="text" id="newDescription" required />
+        <button type="button" onclick="createProduct()">Create Product</button>
+    </form>
+    
+    <!-- Update Product Form -->
+    <h3>Update Product</h3>
+    <form id="updateProductForm">
+        <label for="updateSerialNumber">Serial Number:</label>
+        <input type="text" id="updateSerialNumber" required />
+        <label for="updateDescription">Description:</label>
+        <input type="text" id="updateDescription" required />
+        <label for="updateState">State:</label>
+        <select id="updateState">
+            <option value="">Select State</option>
+            @foreach (var state in Enum.GetValues(typeof(Models.Product.State)))
+            {
+                <option value="@state">@AddSpacesToEnum(state.ToString())</option>
+            }
+        </select>
+        <label for="updateStage">Stage:</label>
+        <select id="updateStage">
+            <option value="">Select Stage</option>
+            @foreach (var stage in Enum.GetValues(typeof(Models.Product.ProdStage)))
+            {
+                <option value="@stage">@AddSpacesToEnum(stage.ToString())</option>
+            }
+        </select>
+        <button type="button" onclick="updateProduct()">Update Product</button>
+    </form>
+</div>
+
+<style>
+
+    /* Style for table spacing */
+    #productTable {
+        border-spacing: 10px;
+    }
+
+        /* Space within table cells */
+        #productTable th, #productTable td {
+            padding: 10px 20px;
+        }
+
+    /* Add spacing between the table and forms */
+    #productForms {
+        margin-top: 30px; /* Adjust this value to your desired spacing */
+    }
+
+</style>
+
+<script>
+    function fetchProductsByStage() {
+        var stage = document.getElementById("prodStageDropdown").value;
+        if (stage) {
+            fetch(`/api/PlantOperations/GetProductsByStage?stage=${stage}`)
+                .then(response => response.json())
+                .then(data => {
+                    var tbody = document.getElementById("productTableBody");
+                    tbody.innerHTML = "";
+                    data.forEach(product => {
+                        var row = `<tr>
+                                    <td>${product.serialnumber}</td>
+                                    <td>${addSpacesToEnum(product.currentstate)}</td>
+                                    <td>${product.datecreated}</td>
+                                    <td>${product.dateupdated}</td>
+                                    <td>${product.description}</td>
+                                    <td>
+                                        <button onclick="populateUpdateForm('${product.serialnumber}', '${product.currentstate}', '${product.description}', '${stage}')">Edit</button>
+                                        <button onclick="deleteProduct('${product.serialnumber}')">Delete</button>
+                                    </td>
+                                </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                    document.getElementById("productTable").style.display = "table";
+                    document.getElementById("productForms").style.display = "block";
+                })
+                .catch(error => console.error('Error fetching products:', error));
+        } else {
+            document.getElementById("productTable").style.display = "none";
+            document.getElementById("productForms").style.display = "none";
+        }
+    }
+
+    function addSpacesToEnum(enumValue) {
+        return enumValue.replace(/([a-z])([A-Z])/g, '$1 $2');
+    }
+
+    function createProduct() {
+        var serialNumber = document.getElementById("newSerialNumber").value;
+        var description = document.getElementById("newDescription").value;
+        fetch('/api/PlantOperations/CreateProduct', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ serialNumber, description })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Product created successfully');
+                    fetchProductsByStage();
+                } else {
+                    alert('Error creating product, please make sure serial number is not already in use');
+                }
+            })
+            .catch(error => console.error('Error creating product: Please make sure serial number is not already in use and In Storage is operational', error));
+    }
+
+    function updateProduct() {
+        var serialNumber = document.getElementById("updateSerialNumber").value;
+        var description = document.getElementById("updateDescription").value;
+        var state = document.getElementById("updateState").value;
+        var stage = document.getElementById("updateStage").value;
+        fetch('/api/PlantOperations/UpdateProduct', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ serialNumber, description, state, stage })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Product updated successfully');
+                    fetchProductsByStage();
+                } else {
+                    alert('Error updating product, unit may be inoperable or the product has not spent enough time in unit');
+                }
+            })
+            .catch(error => console.error('Error updating product:', error));
+    }
+
+    function deleteProduct(serialNumber) {
+        fetch(`/api/PlantOperations/DeleteProduct?serialNumber=${serialNumber}`, {
+            method: 'DELETE'
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Product deleted successfully');
+                    fetchProductsByStage();
+                } else {
+                    alert('Error deleting product');
+                }
+            })
+            .catch(error => console.error('Error deleting product:', error));
+    }
+
+    function populateUpdateForm(serialNumber, currentState, description, stage) {
+        document.getElementById("updateSerialNumber").value = serialNumber;
+        document.getElementById("updateDescription").value = description;
+        document.getElementById("updateState").value = currentState;
+        document.getElementById("updateStage").value = stage;
+    }
+</script>

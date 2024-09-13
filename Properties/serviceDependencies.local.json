@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "secrets1": {
+      "type": "secrets.user"
+    },
+    "mssql1": {
+      "serviceConnectorResourceId": "",
+      "secretStore": "AzureKeyVault",
+      "resourceId": null,
+      "type": "mssql.local",
+      "connectionId": "Server=localhost;Database=master;Trusted_Connection=True;;TrustServerCertificate=true"
+    },
+    "mssql2": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ServiceLinker/locations/eastus/connectors/ConnectionStringsAZURE_SQL_CONNECTIONSTR_14521539CB",
+      "secretStore": "LocalSecretsFile",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/lemonmes-server/databases/LemonMESDatabase",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:AZURE_SQL_CONNECTIONSTRING",
+      "dynamicId": null
+    }
+  }
+}

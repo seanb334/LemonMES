@@ -1,0 +1,120 @@
+﻿@page
+@model LemonMES.Pages.PlantOperationDataModel
+@{
+    ViewData["Title"] = "Plant Operation Statistics";
+}
+<h1>@ViewData["Title"]</h1>
+
+<div class="container">
+    <p>View plant performance over the last 12 months</p>
+</div>
+
+
+<div style="margin-top: 80px ; margin-bottom: 15px ; font-size: 36px">
+    <h3>Citiric Acid Produced</h3>
+</div>
+
+<div>
+    <canvas id="completedProductsChart"></canvas>
+</div>
+
+<div style="margin-top: 40px ; margin-bottom: 15px ; font-size: 36px">
+    <h3>Carbon Dioxide Captured</h3>
+</div>
+
+<div>
+    <canvas id="carbonCapturedChart"></canvas>
+</div>
+
+<div style="margin-top: 40px ; margin-bottom: 15px ; font-size: 36px">
+    <h3>Defective Batches</h3>
+</div>
+
+<div style="margin-bottom: 40px">
+    <canvas id="defectiveProductsChart"></canvas>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+</style>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Defective Products Chart
+            $.ajax({
+                url: '?handler=DefectiveProductsData',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    createChart('defectiveProductsChart', 'Defective Products', data, 'rgba(255, 99, 132, 0.2)', 'rgba(255, 99, 132, 1)');
+                },
+                error: function (xhr, status, error) {
+                    console.error("An error occurred: " + error);
+                    alert("Failed to load defective products data. Please try again later.");
+                }
+            });
+
+            // Completed Products Chart
+            $.ajax({
+                url: '?handler=CompletedProductsData',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    createChart('completedProductsChart', 'Citric Acid (Tons)', data, 'rgba(75, 192, 192, 0.2)', 'rgba(75, 192, 192, 1)');
+                },
+                error: function (xhr, status, error) {
+                    console.error("An error occurred: " + error);
+                    alert("Failed to load completed products data. Please try again later.");
+                }
+            });
+
+            // Captured Carbon Chart
+            $.ajax({
+                url: '?handler=CarbonCapturedData',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    createChart('carbonCapturedChart', 'CO2 (Tons)', data, 'rgba(75, 192, 192, 0.2)', 'rgba(75, 192, 192, 1)');
+                },
+                error: function (xhr, status, error) {
+                    console.error("An error occurred: " + error);
+                    alert("Failed to load carbon capture data. Please try again later.");
+                }
+            });
+
+
+            function createChart(canvasId, label, data, backgroundColor, borderColor) {
+                var ctx = document.getElementById(canvasId).getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(d => d.yearMonth),
+                        datasets: [{
+                            label: label,
+                            data: data.map(d => d.count),
+                            backgroundColor: backgroundColor,
+                            borderColor: borderColor,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

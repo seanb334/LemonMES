@@ -1,0 +1,44 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to LemonMES </h1>
+    <p>Use this app to track and manage batch records for the production of citric acid from biomass. </p>
+    <p>Please log in to view Plant Operation Statistics, manage production with the Shop Floor Management page, or update the status of the plant with the Unit Operability Page.</p>
+</div>
+
+
+@if (Model.IsLoggedIn)
+{
+    <p>Welcome, @Model.Username!</p>
+    <p>You are logged in as: <strong>@Model.UserRole</strong></p>
+}
+else
+{
+    <div>
+        <h2>Login</h2>
+        <form method="post">
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required />
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required />
+            </div>
+            <div>
+                <button type="submit">Login</button>
+            </div>
+        </form>
+
+        @if (ViewData["ErrorMessage"] != null)
+        {
+            <div style="color: red;">
+                @ViewData["ErrorMessage"]
+            </div>
+        }
+    </div>
+}
